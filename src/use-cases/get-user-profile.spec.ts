@@ -1,8 +1,9 @@
-import { InMemoryUsersRepository } from '@/repositories/in-memory/in-memory-users-repository'
-import { ResourceNotFoundError } from '@/use-cases/errors/resource-not-found-error'
-import { GetUserProfileUseCase } from '@/use-cases/get-user-profile'
 import { hash } from 'bcryptjs'
 import { expect, describe, it, beforeEach } from 'vitest'
+
+import { GetUserProfileUseCase } from '@/use-cases/get-user-profile'
+import { ResourceNotFoundError } from '@/use-cases/errors/resource-not-found-error'
+import { InMemoryUsersRepository } from '@/repositories/in-memory/in-memory-users-repository'
 
 let usersRepository: InMemoryUsersRepository
 let sut: GetUserProfileUseCase
@@ -28,7 +29,7 @@ describe('Get User Profile Use Case', () => {
   })
 
   it('should not be able to get user profile with wrong id', async () => {
-    expect(() =>
+    await expect(() =>
       sut.execute({
         userId: 'non-existing-id',
       }),

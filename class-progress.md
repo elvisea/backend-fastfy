@@ -1,5 +1,5 @@
 # Revisão
 
 Fastfy Backend
-Assistir Aula: Refatorando instâncias nos testes
+Assistir Aula: Caso de uso de check-in
 
