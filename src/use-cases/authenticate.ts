@@ -1,38 +1,45 @@
-import { UsersRepository } from '@/repositories/users-repository'
+import { z } from 'zod'
+import { FastifyReply, FastifyRequest } from 'fastify'
+
 import { InvalidCredentialsError } from '@/use-cases/errors/invalid-credentials-error'
-import { User } from '@prisma/client'
-import { compare } from 'bcryptjs'
+import { makeAuthenticateUseCase } from '@/use-cases/factories/make-authenticate-use-case'
 
-interface AuthenticateUseCaseRequest {
-  email: string
-  password: string
-}
+export async function authenticate(
+  request: FastifyRequest,
+  reply: FastifyReply,
+) {
+  const authenticateBodySchema = z.object({
+    email: z.string().email(),
+    password: z.string().min(6),
+  })
 
-interface AuthenticateUseCaseResponse {
-  user: User
-}
+  const { email, password } = authenticateBodySchema.parse(request.body)
 
-export class AuthenticateUseCase {
-  constructor(private usersRepository: UsersRepository) { }
+  try {
+    const authenticateUseCase = makeAuthenticateUseCase()
 
-  async execute({
-    email,
-    password,
-  }: AuthenticateUseCaseRequest): Promise<AuthenticateUseCaseResponse> {
-    const user = await this.usersRepository.findByEmail(email)
+    const { user } = await authenticateUseCase.execute({
+      email,
+      password,
+    })
 
-    if (!user) {
-      throw new InvalidCredentialsError()
+    const token = await reply.jwtSign(
+      {},
+      {
+        sign: {
+          sub: user.id,
+        },
+      },
+    )
+
+    return reply.status(200).send({
+      token,
+    })
+  } catch (err) {
+    if (err instanceof InvalidCredentialsError) {
+      return reply.status(400).send({ message: err.message })
     }
 
-    const doestPasswordMatches = await compare(password, user.password_hash)
-
-    if (!doestPasswordMatches) {
-      throw new InvalidCredentialsError()
-    }
-
-    return {
-      user,
-    }
+    throw err
   }
 }
