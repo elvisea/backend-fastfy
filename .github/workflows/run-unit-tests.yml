@@ -1,20 +1,20 @@
 name: Run Unit Tests
 
-on: [push]
+on: [push] # quando o irá executar o Workflow [push, pull_request, etc...]
 
-jobs:
+jobs: # aqui podem ser executados vários jobs ao mesmo tempo
   run-unit-tests:
     name: Run Unit Tests
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3 # baixa o código
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v3 # instala o node executa o setup node
         with:
           node-version: 18
-          cache: 'npm'
+          cache: 'npm' # se nada mudou nas dependecias do código o workflow reaproveita um cache anterior do npm
 
-      - run: npm ci
+      - run: npm ci # similar ao npm install mas que não faz interações com usuário
 
-      - run: npm run test
+      - run: npm run test # roda os testes unitários
